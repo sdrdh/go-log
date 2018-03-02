@@ -1,4 +1,5 @@
 package log
+
 // Copyright 2013, CoreOS, Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +18,11 @@ package log
 // based on previous package by: Cong Ding <dinggnu@gmail.com>
 
 import (
-	"github.com/kardianos/osext"
 	"os"
 	"path"
 	"time"
+
+	"github.com/kardianos/osext"
 )
 
 // Logger is user-immutable immutable struct which can log to several outputs
@@ -29,9 +31,10 @@ type Logger struct {
 	verbose bool   // gather expensive logging data?
 	prefix  string // static field available to all log sinks under this logger
 
-	created    time.Time // time when this logger was created
-	seq        uint64    // sequential number of log message, starting at 1
-	executable string    // executable name
+	created    time.Time      // time when this logger was created
+	seq        uint64         // sequential number of log message, starting at 1
+	executable string         // executable name
+	location   *time.Location //Location Used for formatting the time
 }
 
 // New creates a new Logger which logs to all the supplied sinks.  The prefix
@@ -39,7 +42,7 @@ type Logger struct {
 // message.  If verbose is true, more expensive runtime fields will be computed
 // and passed to loggers.  These fields are funcname, lineno, pathname, and
 // filename.
-func New(prefix string, verbose bool, sinks ...Sink) *Logger {
+func New(prefix string, verbose bool, location *time.Location, sinks ...Sink) *Logger {
 	return &Logger{
 		sinks:   sinks,
 		verbose: verbose,
@@ -48,6 +51,7 @@ func New(prefix string, verbose bool, sinks ...Sink) *Logger {
 		created:    time.Now(),
 		seq:        0,
 		executable: getExecutableName(),
+		location:   location,
 	}
 }
 
@@ -62,7 +66,7 @@ func getExecutableName() string {
 
 // NewSimple(sinks...) is equivalent to New("", false, sinks...)
 func NewSimple(sinks ...Sink) *Logger {
-	return New("", false, sinks...)
+	return New("", false, nil, sinks...)
 }
 
 var defaultLogger *Logger

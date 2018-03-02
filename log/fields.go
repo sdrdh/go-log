@@ -1,4 +1,5 @@
 package log
+
 // Copyright 2013, CoreOS, Inc. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,12 +30,17 @@ type Fields map[string]interface{}
 
 func (logger *Logger) fieldValues() Fields {
 	now := time.Now()
+	local := now
+	if logger.location != nil {
+		local = now.In(logger.location)
+	}
 	fields := Fields{
 		"prefix":     logger.prefix,               // static field available to all sinks
 		"seq":        logger.nextSeq(),            // auto-incrementing sequence number
 		"start_time": logger.created,              // start time of the logger
 		"time":       now.Format(time.StampMilli), // formatted time of log entry
 		"full_time":  now,                         // time of log entry
+		"local_time": local,                       // time of log entry in local
 		"rtime":      time.Since(logger.created),  // relative time of log entry since started
 		"pid":        os.Getpid(),                 // process id
 		"executable": logger.executable,           // executable filename
